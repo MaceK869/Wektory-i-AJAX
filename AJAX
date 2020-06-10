@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Tabela z filtrem i sortowaniem</title>
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css"/>
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+      <!-- Bootstrap działa standardowo z jQuery, ta wersja biblioteki integruje BS z VUE: -->
+    <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+  </head>
+
+  <body>
+    <h1>Tabela reaktywna VUE</h1>
+     
+   
+
+
+
+
+ <div id="app">
+      <b-container><!-- Kontener Bootstrap-->
+        <b-form-group horizontal label="Filtrowanie tabeli" class="mb-0">
+          <b-input-group>
+            <b-form-input v-model="filter" placeholder="Czego szukasz?" />
+               </b-input-group>
+          </b-form-group>    
+         <template>
+             <b-table striped hover
+                      :items="items"
+                      :fields="fields"
+                      :filter="filter"
+                      @row-clicked="rowClickHandler"
+                    >
+             </b-table>
+          </template>
+       
+        </b-container>
+    
+     
+ <div role="group">
+            <b-form-input
+                 type="text"
+                 placeholder="Kategoria"
+                 v-model="dodajKategoria"
+                 :state="unikalnyKlucz"
+                 @change="sprawdz"
+                 aria-describedby="inputLiveHelp inputLiveFeedback"
+               >
+          </b-form-input>
+          <b-form-invalid-feedback id="inputLiveFeedback">
+              Nazwa kategorii musi być dłuższa od 0 i nie występować w bazie (sprawdzane przy wyjściu z pola).
+          </b-form-invalid-feedback>
+          <b-form-text id="inputLiveHelp">
+             Nazwa kategorii jest poprawna.
+           </b-form-text>
+     </div>
+       </div>    
+     
+
+    <script>        
+      window.app = new Vue({
+        el: "#app",
+        data: {
+          
+           dodajKategoria: '', //dodawana kategoria
+  unikalnyKlucz: false, //czy klucz jest unikalny?
+          filter: '',
+          items: [ //tę tablicę trzeba wczytać z JSONa na serwerze zazwyczaj, my tu wpiszemy na sztywno:
+            { isActive: true, age: 40, first_name: 'Dickerson', last_name: 'Macdonald' },
+            { isActive: false, age: 21, first_name: 'Larsen', last_name: 'Shaw' },
+            { isActive: false, age: 89, first_name: 'Geneva', last_name: 'Wilson' },
+            { isActive: true, age: 38, first_name: 'Jami', last_name: 'Carney' }
+          ],
+          fields:
+            [
+             {
+                key: "isActive", //kolumna z JSON
+                sortable: false, //czy włączyć sortowanie dla tej kolumny
+                label: "Aktywny" //Nagłówek tabeli
+            },
+            {
+                key: "age",
+                sortable: true,
+                label: "Wiek"
+            },
+            {
+                key: "first_name",
+                sortable: true,
+                label: "Imię"
+            },
+                           {
+                key: "last_name",
+                sortable: true,
+                label: "Nazwisko"
+            }
+               
+            ]
+        },
+         
+         methods:
+
+             
+
+
+
+{
+                rowClickHandler: function(record, index) {
+                //zdarzenie kliknięcia w wiersz
+                        alert('wiersz:  ' + JSON.stringify(record) + '\nindex:' + index); // This will be the item data for the row
+               
+
+
+ }
+         }
+       
+
+
+      });
+</script>
+  </body>
+</html>
+
+
+PLIK PHP:
+
+
+<?php
+//Zwraca true jeśli można dodać podany klucz GET do bazy (to znaczy nie ma już takiego samego)
+
+
+include "../polacz.php";
+
+$kategorie = $_GET["kategorie"];
+
+
+if ($sql = $baza->prepare("SELECT kategorie FROM kategorie WHERE kategorie = ?"))
+    {
+        $sql->bind_param("s", $kategorie);
+        $sql->execute();
+        $sql->bind_result($kat);
+
+       if($sql->fetch())
+         echo "false";
+          else
+         echo "true"; //jeśli jest taki w bazie zwraca false - to znaczy nie można dodać
+        $sql->close();
+   
+    }
+    else die ("Błąd SQL - sprawdź zapytanie w MySQL");
+$baza->close();
+
+?>
+
